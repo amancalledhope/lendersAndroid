@@ -1,12 +1,17 @@
 package ui;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.appbuildersworld.lenders.R;
 import com.google.gson.Gson;
@@ -25,23 +30,32 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+
 public class SignUpActivity extends AppCompatActivity {
 
     private MUser newUser;
     private EditText etUserName, etNrc, etPhoneNumber, etPassword, etEmail;
     private Button bSignUp;
+    private ImageButton ibClose;
+    private AlertDialog dProcessingData;
+    private ProgressBar progressBar;
+    private TextView dText;
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
 
+
         etUserName = (EditText) findViewById(R.id.names);
         etNrc = (EditText) findViewById(R.id.nrc);
         etEmail = (EditText) findViewById(R.id.email);
         etPhoneNumber = (EditText) findViewById(R.id.phonenumber);
         etPassword = (EditText) findViewById(R.id.password);
-        bSignUp = (Button)findViewById(R.id.bSignUp);
+        bSignUp = (Button) findViewById(R.id.bSignUp);
 
         bSignUp.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -50,30 +64,38 @@ public class SignUpActivity extends AppCompatActivity {
             }
         });
 
+
+
     }
 
     private void signUp() {
 
-        final ProcessDialog registerDialog = new ProcessDialog(this);
-        registerDialog.showProcessingDialog("Creating Account.. Please wait..");
-        registerDialog.setOnActionListener(new ProcessDialog.ActionClickListener() {
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(this);
+        View mView = getLayoutInflater().inflate(R.layout.dialog_processing_data, null);
+        ibClose = mView.findViewById(R.id.ibClose);
+        ibClose.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onActionClick() {
+            public void onClick(View view) {
+            }
+        });
+        ibClose = mView.findViewById(R.id.ibClose);
+        ibClose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
 
+                dProcessingData.dismiss();
             }
         });
-        registerDialog.setOnCloseDialogListener(new ProcessDialog.CloseDialogClickListener() {
-            @Override
-            public void onCloseDialogClick() {
-                Toast.makeText(SignUpActivity.this, "Please wait for this process to complete...", Toast.LENGTH_SHORT).show();
-            }
-        });
-        registerDialog.setOnBackPressedListener(new ProcessDialog.BackPressedListener() {
-            @Override
-            public void onBackPressedClick() {
-                Toast.makeText(SignUpActivity.this, "Please wait for this process to complete...", Toast.LENGTH_SHORT).show();
-            }
-        });
+        dText = mView.findViewById(R.id.textView_status_initialization);
+        dText.setText("Processing, please wait...");
+        progressBar = mView.findViewById(R.id.progressbar);
+
+        mBuilder.setView(mView);
+
+        dProcessingData = mBuilder.create();
+        dProcessingData.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        dProcessingData.setCancelable(true);
+        dProcessingData.show();
 
         RetrofitInterface retrofitInterface = RetrofitClient.getClient().create(RetrofitInterface.class);
         String userName = etUserName.getText().toString();
@@ -90,11 +112,9 @@ public class SignUpActivity extends AppCompatActivity {
                 try {
 
 
-
                     final String response = netResponse.body().string();
                     Log.d("NNN", "Response" + response);
                     JSONObject responseJObject = new JSONObject(response);
-
 
 
                 } catch (IOException e) {
@@ -113,6 +133,5 @@ public class SignUpActivity extends AppCompatActivity {
         });
     }
 
-    }
-
 }
+
